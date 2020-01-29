@@ -51,7 +51,7 @@ resource "aws_route_table_association" "app_assoc" {
 # Create security groups
 resource "aws_security_group" "app_security_group" {
   name = var.name
-  description = "Allow inbound traffic on port 80"
+  description = "Allow inbound traffic on port 80 and 3000"
   vpc_id = aws_vpc.app_vpc.id
   ingress {
     from_port = 80
@@ -59,9 +59,21 @@ resource "aws_security_group" "app_security_group" {
     protocol = "TCP"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  ingress {
+    from_port = 3000
+    to_port = 3000
+    protocol = "TCP"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
+    from_port = 22
+    to_port = 22
+    protocol = "TCP"
+    cidr_blocks = ["212.161.55.68/32"]
+  }
   tags = {
     Name = "${var.name} - sg"
-  }
+    }
 }
 
 # Send template to sh file
@@ -76,6 +88,7 @@ resource "aws_instance" "app_instance" {
   vpc_security_group_ids = [aws_security_group.app_security_group.id]
   instance_type = "t2.micro"
   associate_public_ip_address = true
+  key_name = "shireen-eng-48-first-key"
   user_data = data.template_file.app_init.rendered
   tags = {
     Name = "${var.name} - instance"
